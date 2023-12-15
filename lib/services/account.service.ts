@@ -2,10 +2,12 @@ import { ACCOUNT_ACCESS } from '~~/prisma/account-access-enum';
 import prisma_client from '~~/prisma/prisma.client';
 import {
   accountWithMembers,
-  AccountWithMembers,
   membershipWithAccount,
-  MembershipWithAccount,
   membershipWithUser,
+} from './service.types';
+import type {
+  AccountWithMembers,
+  MembershipWithAccount,
   MembershipWithUser
 } from './service.types';
 import generator from 'generate-password-ts';
@@ -323,13 +325,13 @@ export default class AccountService {
   /*
   **** Usage Limit Checking *****
   This is trickier than you might think at first.  Free plan users don't get a webhook from Stripe
-  that we can use to tick over their period end date and associated usage counts.  I also didn't 
+  that we can use to tick over their period end date and associated usage counts.  I also didn't
   want to require an additional background thread to do the rollover processing.
 
   getAccountWithPeriodRollover: retrieves an account record and does the rollover checking returning up to date account info
   checkAIGenCount: retrieves the account using getAccountWithPeriodRollover, checks the count and returns the account
   incrementAIGenCount: increments the counter using the account.  Note that passing in the account avoids another db fetch for the account.
-  
+
   Note.. for each usage limit, you will need another pair of check/increment methods and of course the count and max limit in the account schema
 
   How to use in a service method....
