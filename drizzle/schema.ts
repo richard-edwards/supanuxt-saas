@@ -1,5 +1,5 @@
 import { pgTable, pgEnum, serial, text, uniqueIndex, foreignKey, timestamp, integer, boolean } from "drizzle-orm/pg-core"
-  import { sql } from "drizzle-orm"
+import { sql, relations, } from "drizzle-orm"
 
 export const keyStatus = pgEnum("key_status", ['expired', 'invalid', 'valid', 'default'])
 export const keyType = pgEnum("key_type", ['stream_xchacha20', 'secretstream', 'secretbox', 'kdf', 'generichash', 'shorthash', 'auth', 'hmacsha256', 'hmacsha512', 'aead-det', 'aead-ietf'])
@@ -23,7 +23,7 @@ export const account = pgTable("account", {
 	name: text("name").notNull(),
 	currentPeriodEnds: timestamp("current_period_ends", { precision: 3, mode: 'string' }).defaultNow().notNull(),
 	features: text("features").array(),
-	planId: integer("plan_id").notNull().references(() => plan.id, { onDelete: "restrict", onUpdate: "cascade" } ),
+	planId: integer("plan_id").notNull().references(() => plan.id, { onDelete: "restrict", onUpdate: "cascade" }),
 	planName: text("plan_name").notNull(),
 	maxNotes: integer("max_notes").default(100).notNull(),
 	stripeSubscriptionId: text("stripe_subscription_id"),
@@ -33,24 +33,28 @@ export const account = pgTable("account", {
 	aiGenMaxPm: integer("ai_gen_max_pm").default(7).notNull(),
 	aiGenCount: integer("ai_gen_count").default(0).notNull(),
 },
-(table) => {
-	return {
-		joinPasswordKey: uniqueIndex("account_join_password_key").on(table.joinPassword),
-	}
-});
+	(table) => {
+		return {
+			joinPasswordKey: uniqueIndex("account_join_password_key").on(table.joinPassword),
+		}
+	});
+
+export const accountRelations = relations(account, ({ many }) => ({
+	notes: many(note),
+}));
 
 export const membership = pgTable("membership", {
 	id: serial("id").primaryKey().notNull(),
-	userId: integer("user_id").notNull().references(() => users.id, { onDelete: "restrict", onUpdate: "cascade" } ),
-	accountId: integer("account_id").notNull().references(() => account.id, { onDelete: "restrict", onUpdate: "cascade" } ),
+	userId: integer("user_id").notNull().references(() => users.id, { onDelete: "restrict", onUpdate: "cascade" }),
+	accountId: integer("account_id").notNull().references(() => account.id, { onDelete: "restrict", onUpdate: "cascade" }),
 	access: accountAccess("access").default('READ_ONLY').notNull(),
 	pending: boolean("pending").default(false).notNull(),
 },
-(table) => {
-	return {
-		userIdAccountIdKey: uniqueIndex("membership_user_id_account_id_key").on(table.userId, table.accountId),
-	}
-});
+	(table) => {
+		return {
+			userIdAccountIdKey: uniqueIndex("membership_user_id_account_id_key").on(table.userId, table.accountId),
+		}
+	});
 
 export const plan = pgTable("plan", {
 	id: serial("id").primaryKey().notNull(),
@@ -61,14 +65,21 @@ export const plan = pgTable("plan", {
 	maxMembers: integer("max_members").default(1).notNull(),
 	aiGenMaxPm: integer("ai_gen_max_pm").default(7).notNull(),
 },
-(table) => {
-	return {
-		nameKey: uniqueIndex("plan_name_key").on(table.name),
-	}
-});
+	(table) => {
+		return {
+			nameKey: uniqueIndex("plan_name_key").on(table.name),
+		}
+	});
 
 export const note = pgTable("note", {
 	id: serial("id").primaryKey().notNull(),
-	accountId: integer("account_id").references(() => account.id, { onDelete: "set null", onUpdate: "cascade" } ),
-	noteText: text("note_text").notNull(),
+	account_id: integer("account_id").references(() => account.id, { onDelete: "set null", onUpdate: "cascade" }),
+	note_text: text("note_text").notNull(),
 });
+
+export const noteRelations = relations(note, ({ one }) => ({
+	account: one(account, {
+		fields: [note.account_id],
+		references: [account.id],
+	}),
+}));

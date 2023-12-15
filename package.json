@@ -44,6 +44,7 @@
     "generate-password-ts": "^1.6.3",
     "openai": "^3.3.0",
     "pinia": "^2.0.30",
+    "postgres": "^3.4.3",
     "stripe": "^11.12.0",
     "superjson": "^1.12.2",
     "trpc-nuxt": "^0.8.0",

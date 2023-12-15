@@ -3,40 +3,51 @@ import { openai } from './openai.client';
 import { AccountLimitError } from './errors';
 import AccountService from './account.service';
 
+import { db as drizzleDB } from '~~/drizzle/drizzle.client';
+import { note, account } from '~~/drizzle/schema'
+import { eq } from 'drizzle-orm'
+
 export default class NotesService {
   async getAllNotes() {
-    return prisma_client.note.findMany();
+    return await drizzleDB.select().from(note)
   }
 
   async getNoteById(id: number) {
-    return prisma_client.note.findUniqueOrThrow({ where: { id } });
+    return await drizzleDB.select().from(note).where(eq(note.id, id))
   }
 
   async getNotesForAccountId(account_id: number) {
-    return prisma_client.note.findMany({ where: { account_id } });
+    return await drizzleDB.select().from(note).where(eq(note.account_id, account_id))
   }
 
   async createNote(account_id: number, note_text: string) {
-    const account = await prisma_client.account.findFirstOrThrow({
-      where: { id: account_id },
-      include: { notes: true }
-    });
 
-    if (account.notes.length >= account.max_notes) {
+    const this_account = await drizzleDB.query.account.findFirst({
+      where: eq(account.id, account_id),
+      with: {
+        notes: true,
+      },
+    })
+
+    if (!this_account) {
+      throw new Error('Account not found');
+    }
+
+    if (this_account.notes.length >= this_account.maxNotes) {
       throw new AccountLimitError(
         'Note Limit reached, no new notes can be added'
       );
     }
 
-    return prisma_client.note.create({ data: { account_id, note_text } });
+    return await drizzleDB.insert(note).values({ account_id: account_id, note_text: note_text })
   }
 
   async updateNote(id: number, note_text: string) {
-    return prisma_client.note.update({ where: { id }, data: { note_text } });
+    return await drizzleDB.update(note).set({ note_text: note_text }).where(eq(note.id, id))
   }
 
   async deleteNote(id: number) {
-    return prisma_client.note.delete({ where: { id } });
+    return await drizzleDB.delete(note).where(eq(note.id, id))
   }
 
   async generateAINoteFromPrompt(userPrompt: string, account_id: number) {
@@ -44,7 +55,7 @@ export default class NotesService {
     const account = await accountService.checkAIGenCount(account_id);
 
     const prompt = `
-    Write an interesting short note about ${userPrompt}.  
+    Write an interesting short note about ${userPrompt}.
     Restrict the note to a single paragraph.
     `;
     const completion = await openai.createCompletion({

@@ -19,7 +19,7 @@ dependencies:
     version: 2.52.0(autoprefixer@10.4.16)(postcss@8.4.32)(ts-node@10.9.2)
   drizzle-orm:
     specifier: ^0.29.1
-    version: 0.29.1
+    version: 0.29.1(postgres@3.4.3)
   generate-password-ts:
     specifier: ^1.6.3
     version: 1.6.5
@@ -29,6 +29,9 @@ dependencies:
   pinia:
     specifier: ^2.0.30
     version: 2.1.7(typescript@5.3.3)(vue@3.3.11)
+  postgres:
+    specifier: ^3.4.3
+    version: 3.4.3
   stripe:
     specifier: ^11.12.0
     version: 11.18.0
@@ -3737,7 +3740,7 @@ packages:
       - utf-8-validate
     dev: true
 
-  /drizzle-orm@0.29.1:
+  /drizzle-orm@0.29.1(postgres@3.4.3):
     resolution: {integrity: sha512-yItc4unfHnk8XkDD3/bdC63vdboTY7e7I03lCF1OJYABXSIfQYU9BFTQJXMMovVeb3T1/OJWwfW/70T1XPnuUA==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
@@ -3798,6 +3801,8 @@ packages:
         optional: true
       sqlite3:
         optional: true
+    dependencies:
+      postgres: 3.4.3
     dev: false
 
   /duplexer@0.1.2:
@@ -6540,6 +6545,11 @@ packages:
       nanoid: 3.3.7
       picocolors: 1.0.0
       source-map-js: 1.0.2
+
+  /postgres@3.4.3:
+    resolution: {integrity: sha512-iHJn4+M9vbTdHSdDzNkC0crHq+1CUdFhx+YqCE+SqWxPjm+Zu63jq7yZborOBF64c8pc58O5uMudyL1FQcHacA==}
+    engines: {node: '>=12'}
+    dev: false
 
   /pretty-bytes@6.1.1:
     resolution: {integrity: sha512-mQUvGU6aUFQ+rNvTIAcZuWGRT9a6f6Yrg9bHs4ImKF+HZCEK+plBvnAZYSIQztknZF2qnzNtr6F8s0+IuptdlQ==}
