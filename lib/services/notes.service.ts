@@ -39,7 +39,9 @@ export default class NotesService {
       );
     }
 
-    return await drizzleDB.insert(note).values({ account_id: account_id, note_text: note_text })
+    return await drizzleDB.insert(note)
+      .values({ account_id: account_id, note_text: note_text })
+      .returning()
   }
 
   async updateNote(id: number, note_text: string) {
@@ -48,6 +50,7 @@ export default class NotesService {
 
   async deleteNote(id: number) {
     return await drizzleDB.delete(note).where(eq(note.id, id))
+      .returning()
   }
 
   async generateAINoteFromPrompt(userPrompt: string, account_id: number) {

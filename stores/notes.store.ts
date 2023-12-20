@@ -20,7 +20,7 @@ export const useNotesStore = defineStore('notes', () => {
     const { $client } = useNuxtApp();
     const { note } = await $client.notes.createNote.mutate({ note_text });
     if (note) {
-      _notes.value.push(note);
+      _notes.value.push(note[0]);
     }
   }
 
@@ -28,7 +28,8 @@ export const useNotesStore = defineStore('notes', () => {
     const { $client } = useNuxtApp();
     const { note } = await $client.notes.deleteNote.mutate({ note_id });
     if (note) {
-      _notes.value = _notes.value.filter(n => n.id !== note.id);
+      console.log('delete note', note)
+      _notes.value = _notes.value.filter(n => n.id !== note_id);
     }
   }
 
