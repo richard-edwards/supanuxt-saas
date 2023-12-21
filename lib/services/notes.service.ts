@@ -1,4 +1,3 @@
-import prisma_client from '~~/prisma/prisma.client';
 import { openai } from './openai.client';
 import { AccountLimitError } from './errors';
 import AccountService from './account.service';
