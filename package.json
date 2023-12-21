@@ -28,6 +28,7 @@
     "@tailwindcss/typography": "^0.5.9",
     "@types/node": "^18.15.11",
     "drizzle-kit": "^0.20.6",
+    "drizzle-zod": "^0.5.1",
     "nuxt": "^3.7.0",
     "nuxt-icon": "^0.3.3",
     "prisma": "^5.2.0",
