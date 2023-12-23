@@ -13,7 +13,8 @@ import {
 import type {
   AccountWithMembers,
   MembershipWithAccount,
-  MembershipWithUser
+  MembershipWithUser,
+  Membership
 } from './service.types';
 import generator from 'generate-password-ts';
 import { UtilService } from './util.service';
@@ -151,23 +152,31 @@ export default class AccountService {
   async deleteMembership(
     account_id: number,
     membership_id: number
-  ): Promise<MembershipWithAccount> {
-    const membership = prisma_client.membership.findFirstOrThrow({
-      where: {
-        id: membership_id
-      }
-    });
+  ): Promise<number> {
+    const this_membership = await drizzleDB.query.membership.findFirst({
+      where: (membership) => eq(membership.id, membership_id),
+    })
 
-    if ((await membership).account_id != account_id) {
+    if (!this_membership) {
+      throw new Error(`Membership does not exist`);
+    }
+
+    if (this_membership.accountId != account_id) {
       throw new Error(`Membership does not belong to current account`);
     }
 
-    return await prisma_client.membership.delete({
-      where: {
-        id: membership_id
-      },
-      ...membershipWithAccount
-    });
+    const deletedMembership = await drizzleDB.delete(membership)
+      .where(eq(membership.id, membership_id))
+      .returning()
+
+    return deletedMembership[0].id
+
+    // return await prisma_client.membership.delete({
+    //   where: {
+    //     id: membership_id
+    //   },
+    //   ...membershipWithAccount
+    // });
   }
 
   async joinUserToAccount(

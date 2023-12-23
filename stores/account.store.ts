@@ -7,7 +7,7 @@ import { FullDBUser, MembershipWithUser } from '~~/lib/services/service.types';
 This store manages User and Account state including the ActiveAccount
 It is used in the Account administration page and the header due to it's account switching features.
 
-Note) Other pages don't need this state as the dbUser and activeAccount are available on the TRPC Context 
+Note) Other pages don't need this state as the dbUser and activeAccount are available on the TRPC Context
 so that other routers can use them to filter results to the active user and account transparently.
 
 [State Map]
@@ -108,12 +108,13 @@ export const useAccountStore = defineStore('account', () => {
 
   const rejectPendingMembership = async (membership_id: number) => {
     const { $client } = useNuxtApp();
-    const { data: membership } =
+    const { data: deleted_membership_id } =
       await $client.account.rejectPendingMembership.useQuery({
         membership_id
       });
 
-    if (membership.value) {
+    if (deleted_membership_id.value) {
+      // remove from activeAccountMembers
       activeAccountMembers.value = activeAccountMembers.value.filter(
         m => m.id !== membership_id
       );
@@ -122,10 +123,10 @@ export const useAccountStore = defineStore('account', () => {
 
   const deleteMembership = async (membership_id: number) => {
     const { $client } = useNuxtApp();
-    const { data: membership } =
+    const { data: deleted_membership_id } =
       await $client.account.deleteMembership.useQuery({ membership_id });
 
-    if (membership.value) {
+    if (deleted_membership_id.value) {
       activeAccountMembers.value = activeAccountMembers.value.filter(
         m => m.id !== membership_id
       );

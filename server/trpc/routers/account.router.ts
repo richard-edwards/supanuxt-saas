@@ -108,26 +108,26 @@ export const accountRouter = router({
     .input(z.object({ membership_id: z.number() }))
     .query(async ({ ctx, input }) => {
       const accountService = new AccountService();
-      const membership: MembershipWithAccount =
+      const deleted_membership_id: number =
         await accountService.deleteMembership(
           ctx.activeAccountId!,
           input.membership_id
         );
       return {
-        membership
+        deleted_membership_id
       };
     }),
   deleteMembership: ownerProcedure
     .input(z.object({ membership_id: z.number() }))
     .query(async ({ ctx, input }) => {
       const accountService = new AccountService();
-      const membership: MembershipWithAccount =
+      const deleted_membership_id: number =
         await accountService.deleteMembership(
           ctx.activeAccountId!,
           input.membership_id
         );
       return {
-        membership
+        deleted_membership_id
       };
     }),
   changeUserAccessWithinAccount: adminProcedure
