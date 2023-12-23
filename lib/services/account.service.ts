@@ -113,13 +113,15 @@ export default class AccountService {
     membership_id: number
   ): Promise<MembershipWithAccount> {
 
-    const this_membership = prisma_client.membership.findFirstOrThrow({
-      where: {
-        id: membership_id
-      }
-    });
+    const this_membership = await drizzleDB.query.membership.findFirst({
+      where: (membership) => eq(membership.id, membership_id),
+    })
 
-    if ((await this_membership).account_id != account_id) {
+    if (!this_membership) {
+      throw new Error(`Membership does not exist`);
+    }
+
+    if (this_membership.accountId != account_id) {
       throw new Error(`Membership does not belong to current account`);
     }
 
@@ -137,16 +139,6 @@ export default class AccountService {
     })
 
     return updatedMembershipWithAccount as MembershipWithAccount
-
-    // return await prisma_client.membership.update({
-    //   where: {
-    //     id: membership_id
-    //   },
-    //   data: {
-    //     pending: false
-    //   },
-    //   ...membershipWithAccount
-    // });
   }
 
   async deleteMembership(
@@ -171,12 +163,6 @@ export default class AccountService {
 
     return deletedMembership[0].id
 
-    // return await prisma_client.membership.delete({
-    //   where: {
-    //     id: membership_id
-    //   },
-    //   ...membershipWithAccount
-    // });
   }
 
   async joinUserToAccount(
@@ -184,38 +170,65 @@ export default class AccountService {
     account_id: number,
     pending: boolean
   ): Promise<MembershipWithAccount> {
-    const account = await prisma_client.account.findUnique({
-      where: {
-        id: account_id
-      },
-      include: {
-        members: true
-      }
-    });
 
-    if (account?.members && account?.members?.length >= account?.max_members) {
+    const this_account = await drizzleDB.query.account.findFirst({
+      where: (account) => eq(account.id, account_id),
+      with: {
+        members: true,
+      }
+    })
+
+    // const account = await prisma_client.account.findUnique({
+    //   where: {
+    //     id: account_id
+    //   },
+    //   include: {
+    //     members: true
+    //   }
+    // });
+
+    if (this_account?.members && this_account?.members?.length >= this_account?.maxMembers) {
       throw new Error(
-        `Too Many Members, Account only permits ${account?.max_members} members.`
+        `Too Many Members, Account only permits ${this_account?.maxMembers} members.`
       );
     }
 
-    if (account?.members) {
-      for (const member of account.members) {
-        if (member.user_id === user_id) {
+    if (this_account?.members) {
+      for (const member of this_account.members) {
+        if (member.userId === user_id) {
           throw new Error(`User is already a member`);
         }
       }
     }
 
-    return prisma_client.membership.create({
-      data: {
-        user_id: user_id,
-        account_id,
+    const newMembership = await drizzleDB.insert(membership)
+      .values({
+        userId: user_id,
+        accountId: account_id,
         access: ACCOUNT_ACCESS.READ_ONLY,
         pending
-      },
-      ...membershipWithAccount
-    });
+      })
+      .returning()
+
+    // Retrieve the updated membership
+    const updatedMembershipWithAccount = await drizzleDB.query.membership.findFirst({
+      where: (membership) => eq(membership.id, newMembership[0].id),
+      with: {
+        account: true,
+      }
+    })
+
+    return updatedMembershipWithAccount as MembershipWithAccount
+
+    // return prisma_client.membership.create({
+    //   data: {
+    //     user_id: user_id,
+    //     account_id,
+    //     access: ACCOUNT_ACCESS.READ_ONLY,
+    //     pending
+    //   },
+    //   ...membershipWithAccount
+    // });
   }
 
   async changeAccountName(account_id: number, new_name: string) {
@@ -256,65 +269,66 @@ export default class AccountService {
   // User must already be an ADMIN for the Account
   // Existing OWNER memberships are downgraded to ADMIN
   // In future, some sort of Billing/Stripe tie in here e.g. changing email details on the Account, not sure.
-  async claimOwnershipOfAccount(
-    user_id: number,
-    account_id: number
-  ): Promise<MembershipWithUser[]> {
-    const membership = await prisma_client.membership.findUniqueOrThrow({
-      where: {
-        user_id_account_id: {
-          user_id: user_id,
-          account_id: account_id
-        }
-      }
-    });
+  // async claimOwnershipOfAccount(
+  //   user_id: number,
+  //   account_id: number
+  // ): Promise<MembershipWithUser[]> {
+  //   const membership = await prisma_client.membership.findUniqueOrThrow({
+  //     where: {
+  //       user_id_account_id: {
+  //         user_id: user_id,
+  //         account_id: account_id
+  //       }
+  //     }
+  //   });
 
-    if (membership.access === ACCOUNT_ACCESS.OWNER) {
-      throw new Error('BADREQUEST: user is already owner');
-    } else if (membership.access !== ACCOUNT_ACCESS.ADMIN) {
-      throw new Error('UNAUTHORISED: only Admins can claim ownership');
-    }
+  //   if (membership.access === ACCOUNT_ACCESS.OWNER) {
+  //     throw new Error('BADREQUEST: user is already owner');
+  //   } else if (membership.access !== ACCOUNT_ACCESS.ADMIN) {
+  //     throw new Error('UNAUTHORISED: only Admins can claim ownership');
+  //   }
 
-    const existing_owner_memberships = await prisma_client.membership.findMany({
-      where: {
-        account_id: account_id,
-        access: ACCOUNT_ACCESS.OWNER
-      }
-    });
+  //   const existing_owner_memberships = await prisma_client.membership.findMany({
+  //     where: {
+  //       account_id: account_id,
+  //       access: ACCOUNT_ACCESS.OWNER
+  //     }
+  //   });
 
-    for (const existing_owner_membership of existing_owner_memberships) {
-      await prisma_client.membership.update({
-        where: {
-          user_id_account_id: {
-            user_id: existing_owner_membership.user_id,
-            account_id: account_id
-          }
-        },
-        data: {
-          access: ACCOUNT_ACCESS.ADMIN // Downgrade OWNER to ADMIN
-        }
-      });
-    }
+  //   for (const existing_owner_membership of existing_owner_memberships) {
+  //     await prisma_client.membership.update({
+  //       where: {
+  //         user_id_account_id: {
+  //           user_id: existing_owner_membership.user_id,
+  //           account_id: account_id
+  //         }
+  //       },
+  //       data: {
+  //         access: ACCOUNT_ACCESS.ADMIN // Downgrade OWNER to ADMIN
+  //       }
+  //     });
+  //   }
 
-    // finally update the ADMIN member to OWNER
-    await prisma_client.membership.update({
-      where: {
-        user_id_account_id: {
-          user_id: user_id,
-          account_id: account_id
-        }
-      },
-      data: {
-        access: ACCOUNT_ACCESS.OWNER
-      }
-    });
+  //   // finally update the ADMIN member to OWNER
+  //   await prisma_client.membership.update({
+  //     where: {
+  //       user_id_account_id: {
+  //         user_id: user_id,
+  //         account_id: account_id
+  //       }
+  //     },
+  //     data: {
+  //       access: ACCOUNT_ACCESS.OWNER
+  //     }
+  //   });
 
-    // return the full membership list because 2 members have changed.
-    return prisma_client.membership.findMany({
-      where: { account_id },
-      ...membershipWithUser
-    });
-  }
+  //   // return the full membership list because 2 members have changed.
+  //   // return prisma_client.membership.findMany({
+  //   //   where: { account_id },
+  //   //   ...membershipWithUser
+  //   // });
+  //   console.error('TODO: return the full membership list because 2 members have changed.');
+  // }
 
   // Upgrade access of a membership.  Cannot use this method to upgrade to or downgrade from OWNER access
   async changeUserAccessWithinAccount(

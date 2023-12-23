@@ -175,15 +175,15 @@ export const useAccountStore = defineStore('account', () => {
     }
   };
 
-  const claimOwnershipOfAccount = async () => {
-    const { $client } = useNuxtApp();
-    const { memberships } =
-      await $client.account.claimOwnershipOfAccount.mutate();
-    if (memberships) {
-      activeAccountMembers.value = memberships;
-      activeMembership.value!.access = ACCOUNT_ACCESS.OWNER;
-    }
-  };
+  // const claimOwnershipOfAccount = async () => {
+  //   const { $client } = useNuxtApp();
+  //   const { memberships } =
+  //     await $client.account.claimOwnershipOfAccount.mutate();
+  //   if (memberships) {
+  //     activeAccountMembers.value = memberships;
+  //     activeMembership.value!.access = ACCOUNT_ACCESS.OWNER;
+  //   }
+  // };
 
   return {
     dbUser,
@@ -201,6 +201,6 @@ export const useAccountStore = defineStore('account', () => {
     rotateJoinPassword,
     joinUserToAccountPending,
     changeUserAccessWithinAccount,
-    claimOwnershipOfAccount
+    // claimOwnershipOfAccount
   };
 });

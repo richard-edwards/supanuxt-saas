@@ -100,14 +100,14 @@
           class="bg-green-500 text-white font-semibold py-1 px-2 rounded-full">
           {{ activeMembership?.access }}
         </span>
-        <button
+        <!-- <button
           @click.prevent="accountStore.claimOwnershipOfAccount()"
           v-if="
             activeMembership && activeMembership.access === ACCOUNT_ACCESS.ADMIN
           "
           class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline-blue">
           Claim Ownership
-        </button>
+        </button> -->
       </div>
 
       <div class="flex gap-4 items-center">

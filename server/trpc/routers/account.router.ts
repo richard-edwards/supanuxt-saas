@@ -153,16 +153,16 @@ export const accountRouter = router({
         membership
       };
     }),
-  claimOwnershipOfAccount: adminProcedure.mutation(async ({ ctx }) => {
-    const accountService = new AccountService();
-    const memberships = await accountService.claimOwnershipOfAccount(
-      ctx.dbUser!.id,
-      ctx.activeAccountId!
-    );
-    return {
-      memberships
-    };
-  }),
+  // claimOwnershipOfAccount: adminProcedure.mutation(async ({ ctx }) => {
+  //   const accountService = new AccountService();
+  //   const memberships = await accountService.claimOwnershipOfAccount(
+  //     ctx.dbUser!.id,
+  //     ctx.activeAccountId!
+  //   );
+  //   return {
+  //     memberships
+  //   };
+  // }),
   getAccountMembers: adminProcedure.query(async ({ ctx }) => {
     const accountService = new AccountService();
     const memberships = await accountService.getAccountMembers(
