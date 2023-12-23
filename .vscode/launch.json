@@ -6,10 +6,11 @@
     {
       "type": "chrome",
       "request": "launch",
-      "name": "client: chrome",
+      "name": "client: brave",
       "url": "http://localhost:3000",
       "webRoot": "${workspaceFolder}",
-      "runtimeExecutable": "/usr/bin/brave-browser"
+      "runtimeExecutable": "/usr/bin/brave-browser",
+      "runtimeArgs": ["--remote-debugging-port=9222"]
     },
     {
       "type": "node",
