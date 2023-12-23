@@ -11,7 +11,7 @@ export const codeChallengeMethod = pgEnum("code_challenge_method", ['plain', 's2
 export const accountAccess = pgEnum("ACCOUNT_ACCESS", ['OWNER', 'ADMIN', 'READ_WRITE', 'READ_ONLY'])
 
 
-export const users = pgTable("users", {
+export const user = pgTable("users", {
 	id: serial("id").primaryKey().notNull(),
 	supabaseUid: text("supabase_uid").notNull(),
 	email: text("email"),
@@ -39,13 +39,9 @@ export const account = pgTable("account", {
 		}
 	});
 
-export const accountRelations = relations(account, ({ many }) => ({
-	notes: many(note),
-}));
-
 export const membership = pgTable("membership", {
 	id: serial("id").primaryKey().notNull(),
-	userId: integer("user_id").notNull().references(() => users.id, { onDelete: "restrict", onUpdate: "cascade" }),
+	userId: integer("user_id").notNull().references(() => user.id, { onDelete: "restrict", onUpdate: "cascade" }),
 	accountId: integer("account_id").notNull().references(() => account.id, { onDelete: "restrict", onUpdate: "cascade" }),
 	access: accountAccess("access").default('READ_ONLY').notNull(),
 	pending: boolean("pending").default(false).notNull(),
@@ -77,9 +73,3 @@ export const note = pgTable("note", {
 	note_text: text("note_text").notNull(),
 });
 
-export const noteRelations = relations(note, ({ one }) => ({
-	account: one(account, {
-		fields: [note.account_id],
-		references: [account.id],
-	}),
-}));

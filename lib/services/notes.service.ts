@@ -44,7 +44,9 @@ export default class NotesService {
   }
 
   async updateNote(id: number, note_text: string) {
-    return await drizzleDB.update(note).set({ note_text: note_text }).where(eq(note.id, id))
+    return await drizzleDB.update(note)
+      .set({ note_text: note_text })
+      .where(eq(note.id, id))
   }
 
   async deleteNote(id: number) {

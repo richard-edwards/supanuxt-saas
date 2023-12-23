@@ -1,5 +1,10 @@
 import { ACCOUNT_ACCESS } from '~~/prisma/account-access-enum';
 import prisma_client from '~~/prisma/prisma.client';
+// drizzle
+import { db as drizzleDB } from '~~/drizzle/drizzle.client';
+import { account, membership } from '~~/drizzle/schema'
+import { eq } from 'drizzle-orm'
+
 import {
   accountWithMembers,
   membershipWithAccount,
@@ -34,10 +39,17 @@ export default class AccountService {
   }
 
   async getAccountMembers(account_id: number): Promise<MembershipWithUser[]> {
-    return prisma_client.membership.findMany({
-      where: { account_id },
-      ...membershipWithUser
-    });
+    return drizzleDB.query.membership.findMany({
+      where: eq(account.id, account_id),
+      with: {
+        user: true,
+      },
+    })
+
+    // return prisma_client.membership.findMany({
+    //   where: { account_id },
+    //   ...membershipWithUser
+    // });
   }
 
   async updateAccountStipeCustomerId(
@@ -99,25 +111,41 @@ export default class AccountService {
     account_id: number,
     membership_id: number
   ): Promise<MembershipWithAccount> {
-    const membership = prisma_client.membership.findFirstOrThrow({
+
+    const this_membership = prisma_client.membership.findFirstOrThrow({
       where: {
         id: membership_id
       }
     });
 
-    if ((await membership).account_id != account_id) {
+    if ((await this_membership).account_id != account_id) {
       throw new Error(`Membership does not belong to current account`);
     }
 
-    return await prisma_client.membership.update({
-      where: {
-        id: membership_id
-      },
-      data: {
-        pending: false
-      },
-      ...membershipWithAccount
-    });
+    await drizzleDB.update(membership)
+      .set({ pending: false })
+      .where(eq(membership.id, membership_id))
+      .returning()
+
+    // Retrieve the updated user with related entities
+    const updatedMembershipWithAccount = await drizzleDB.query.membership.findFirst({
+      where: (membership) => eq(membership.id, membership_id),
+      with: {
+        account: true,
+      }
+    })
+
+    return updatedMembershipWithAccount as MembershipWithAccount
+
+    // return await prisma_client.membership.update({
+    //   where: {
+    //     id: membership_id
+    //   },
+    //   data: {
+    //     pending: false
+    //   },
+    //   ...membershipWithAccount
+    // });
   }
 
   async deleteMembership(
