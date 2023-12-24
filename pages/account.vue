@@ -17,9 +17,10 @@
     if (!date) {
       return '';
     }
-    return new Intl.DateTimeFormat('default', { dateStyle: 'long' }).format(
-      date
-    );
+    return date.toString();
+    // return new Intl.DateTimeFormat('default', { dateStyle: 'long' }).format(
+    // date
+    // );
   }
 
   function joinURL() {
