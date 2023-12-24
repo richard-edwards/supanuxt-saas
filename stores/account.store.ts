@@ -28,7 +28,7 @@ export const useAccountStore = defineStore('account', () => {
   const activeAccountId = ref<number | null>(null);
   const activeAccountMembers = ref<MembershipWithUser[]>([]);
   const activeMembership = computed(() =>
-    dbUser?.value?.memberships.find(m => m.accountId === activeAccountId.value)
+    dbUser?.value?.memberships.find(m => m.account_id === activeAccountId.value)
   );
 
   const init = async () => {

@@ -12,18 +12,18 @@ export const accountRelations = relations(account, ({ many }) => ({
 
 export const membershipRelations = relations(membership, ({ one }) => ({
   user: one(user, {
-    fields: [membership.userId],
+    fields: [membership.user_id],
     references: [user.id],
   }),
   account: one(account, {
-    fields: [membership.accountId],
+    fields: [membership.account_id],
     references: [account.id],
   }),
 }));
 
 export const noteRelations = relations(note, ({ one }) => ({
   account: one(account, {
-    fields: [note.accountId],
+    fields: [note.account_id],
     references: [account.id],
   }),
 }));

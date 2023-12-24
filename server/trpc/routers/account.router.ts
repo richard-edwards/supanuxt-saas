@@ -30,7 +30,7 @@ export const accountRouter = router({
     .input(z.object({ account_id: z.number() }))
     .mutation(async ({ ctx, input }) => {
       const activeMembership = ctx.dbUser?.memberships.find(
-        m => m.accountId == input.account_id
+        m => m.account_id == input.account_id
       );
       if (activeMembership?.pending) {
         throw new TRPCError({

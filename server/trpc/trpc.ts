@@ -57,7 +57,7 @@ const isMemberWithAccessesForActiveAccountId = (access: ACCOUNT_ACCESS[]) =>
       });
     }
     const activeMembership = ctx.dbUser.memberships.find(
-      m => m.accountId == ctx.activeAccountId
+      m => m.account_id == ctx.activeAccountId
     );
 
     console.log(
@@ -94,7 +94,7 @@ export const isAccountWithFeature = (feature: string) =>
       throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
     const activeMembership = ctx.dbUser.memberships.find(
-      m => m.accountId == ctx.activeAccountId
+      m => m.account_id == ctx.activeAccountId
     );
 
     console.log(

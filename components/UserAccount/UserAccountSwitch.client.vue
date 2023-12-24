@@ -14,9 +14,9 @@
     <li>Switch Account</li>
     <li v-for="membership in dbUser?.memberships">
       <a
-        v-if="membership.accountId !== activeAccountId && !membership.pending"
+        v-if="membership.account_id !== activeAccountId && !membership.pending"
         href="#"
-        @click="accountStore.changeActiveAccount(membership.accountId)">
+        @click="accountStore.changeActiveAccount(membership.account_id)">
         {{ membership.account.name }}
       </a>
       <span v-if="membership.pending">

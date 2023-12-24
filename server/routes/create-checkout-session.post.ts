@@ -21,7 +21,7 @@ export default defineEventHandler(async event => {
     account_id
   );
   let customer_id: string;
-  if (!account.stripeCustomerId) {
+  if (!account.stripe_customer_id) {
     // need to pre-emptively create a Stripe user for this account so we know who they are when the webhook comes back
     const owner = account.members.find(
       member => member.access == ACCOUNT_ACCESS.OWNER

@@ -15,7 +15,7 @@ export default class NotesService {
   }
 
   async getNotesForAccountId(account_id: number) {
-    return await drizzleDB.select().from(note).where(eq(note.accountId, account_id))
+    return await drizzleDB.select().from(note).where(eq(note.account_id, account_id))
   }
 
   async createNote(account_id: number, note_text: string) {
@@ -31,7 +31,7 @@ export default class NotesService {
       throw new Error('Account not found');
     }
 
-    if (this_account.notes.length >= this_account.maxNotes) {
+    if (this_account.notes.length >= this_account.max_notes) {
       throw new AccountLimitError(
         'Note Limit reached, no new notes can be added'
       );

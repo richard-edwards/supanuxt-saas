@@ -15,7 +15,7 @@ const config = useRuntimeConfig();
 export default class AuthService {
   async getFullUserBySupabaseId(supabase_uid: string): Promise<FullDBUser | null> {
     const this_user = await drizzleDB.query.user.findFirst({
-      where: eq(user.supabaseUid, supabase_uid),
+      where: eq(user.supabase_uid, supabase_uid),
       with: {
         memberships: {
           with: {
@@ -68,28 +68,28 @@ export default class AuthService {
     const newAccountId: { insertedId: number }[] = await drizzleDB.insert(account)
       .values({
         name: display_name,
-        currentPeriodEnds: endingDate.toDateString(),
-        planId: trialPlan.id,
+        current_period_ends: endingDate.toDateString(),
+        plan_id: trialPlan.id,
         features: trialPlan.features,
-        maxNotes: trialPlan.maxNotes,
-        maxMembers: trialPlan.maxMembers,
-        planName: trialPlan.name,
-        joinPassword: join_password
+        max_notes: trialPlan.max_notes,
+        max_members: trialPlan.max_members,
+        plan_name: trialPlan.name,
+        join_password: join_password
       })
       .returning({ insertedId: account.id });
 
     const newUserId: { insertedId: number }[] = await drizzleDB.insert(user)
       .values({
-        supabaseUid: supabase_uid,
-        displayName: display_name,
+        supabase_uid: supabase_uid,
+        display_name: display_name,
         email: email,
       })
       .returning({ insertedId: user.id });
 
     const newMembershipId: { insertedId: number }[] = await drizzleDB.insert(membership)
       .values({
-        accountId: newAccountId[0].insertedId,
-        userId: newUserId[0].insertedId,
+        account_id: newAccountId[0].insertedId,
+        user_id: newUserId[0].insertedId,
         access: ACCOUNT_ACCESS.OWNER
       })
       .returning({ insertedId: membership.id });

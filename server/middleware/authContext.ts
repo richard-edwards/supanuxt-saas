@@ -55,12 +55,12 @@ export default defineEventHandler(async event => {
         if (
           preferredAccountId &&
           dbUser?.memberships.find(
-            m => m.accountId === +preferredAccountId && !m.pending
+            m => m.account_id === +preferredAccountId && !m.pending
           )
         ) {
           activeAccountId = +preferredAccountId;
         } else {
-          const defaultActive = dbUser.memberships[0].accountId.toString();
+          const defaultActive = dbUser.memberships[0].account_id.toString();
           setCookie(event, 'preferred-active-account-id', defaultActive, {
             expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10)
           });

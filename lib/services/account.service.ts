@@ -26,7 +26,7 @@ export default class AccountService {
 
   async getAccountByJoinPassword(join_password: string): Promise<AccountWithMembers> {
     const this_account = await drizzleDB.query.account.findFirst({
-      where: eq(account.joinPassword, join_password),
+      where: eq(account.join_password, join_password),
       with: {
         members: true,
       },
@@ -49,7 +49,7 @@ export default class AccountService {
   ) {
 
     return await drizzleDB.update(account)
-      .set({ stripeCustomerId: stripe_customer_id })
+      .set({ stripe_customer_id: stripe_customer_id })
       .where(eq(account.id, account_id))
       .returning()
   }
@@ -61,7 +61,7 @@ export default class AccountService {
     stripe_product_id: string
   ) {
     const this_account = await drizzleDB.query.account.findFirst({
-      where: eq(account.stripeCustomerId, stripe_customer_id),
+      where: eq(account.stripe_customer_id, stripe_customer_id),
     })
 
     if (!this_account) {
@@ -73,7 +73,7 @@ export default class AccountService {
     // });
 
     const paid_plan = await drizzleDB.query.plan.findFirst({
-      where: eq(plan.stripeProductId, stripe_product_id),
+      where: eq(plan.stripe_product_id, stripe_product_id),
     })
 
     if (!paid_plan) {
@@ -85,13 +85,13 @@ export default class AccountService {
     // });
 
 
-    if (paid_plan.id == this_account.planId) {
+    if (paid_plan.id == this_account.plan_id) {
       // only update sub and period info
       return await drizzleDB.update(account)
         .set({
-          stripeSubscriptionId: stripe_subscription_id,
-          currentPeriodEnds: current_period_ends.toDateString(),
-          aiGenCount: 0
+          stripe_subscription_id: stripe_subscription_id,
+          current_period_ends: current_period_ends.toDateString(),
+          ai_gen_count: 0
         })
         .where(eq(account.id, this_account.id))
         .returning()
@@ -109,15 +109,15 @@ export default class AccountService {
 
       return await drizzleDB.update(account)
         .set({
-          stripeSubscriptionId: stripe_subscription_id,
-          currentPeriodEnds: current_period_ends.toDateString(),
-          planId: paid_plan.id,
+          stripe_subscription_id: stripe_subscription_id,
+          current_period_ends: current_period_ends.toDateString(),
+          plan_id: paid_plan.id,
           features: paid_plan.features,
-          maxNotes: paid_plan.maxNotes,
-          maxMembers: paid_plan.maxMembers,
-          planName: paid_plan.name,
-          aiGenMaxPm: paid_plan.aiGenMaxPm,
-          aiGenCount: 0
+          max_notes: paid_plan.max_notes,
+          max_members: paid_plan.max_members,
+          plan_name: paid_plan.name,
+          ai_gen_max_pm: paid_plan.ai_gen_max_pm,
+          ai_gen_count: 0
         })
         .where(eq(account.id, this_account.id))
         .returning()
@@ -152,7 +152,7 @@ export default class AccountService {
       throw new Error(`Membership does not exist`);
     }
 
-    if (this_membership.accountId != account_id) {
+    if (this_membership.account_id != account_id) {
       throw new Error(`Membership does not belong to current account`);
     }
 
@@ -183,7 +183,7 @@ export default class AccountService {
       throw new Error(`Membership does not exist`);
     }
 
-    if (this_membership.accountId != account_id) {
+    if (this_membership.account_id != account_id) {
       throw new Error(`Membership does not belong to current account or account does not exist`);
     }
 
@@ -217,15 +217,15 @@ export default class AccountService {
     //   }
     // });
 
-    if (this_account?.members && this_account?.members?.length >= this_account?.maxMembers) {
+    if (this_account?.members && this_account?.members?.length >= this_account?.max_members) {
       throw new Error(
-        `Too Many Members, Account only permits ${this_account?.maxMembers} members.`
+        `Too Many Members, Account only permits ${this_account?.max_members} members.`
       );
     }
 
     if (this_account?.members) {
       for (const member of this_account.members) {
-        if (member.userId === user_id) {
+        if (member.user_id === user_id) {
           throw new Error(`User is already a member`);
         }
       }
@@ -233,8 +233,8 @@ export default class AccountService {
 
     const newMembership = await drizzleDB.insert(membership)
       .values({
-        userId: user_id,
-        accountId: account_id,
+        user_id: user_id,
+        account_id: account_id,
         access: ACCOUNT_ACCESS.READ_ONLY,
         pending
       })
@@ -294,9 +294,9 @@ export default class AccountService {
 
     return await drizzleDB.update(account)
       .set({
-        planId: this_plan.id,
+        plan_id: this_plan.id,
         features: this_plan.features,
-        maxNotes: this_plan.maxNotes,
+        max_notes: this_plan.max_notes,
       })
       .where(eq(account.id, account.id))
       .returning()
@@ -319,7 +319,7 @@ export default class AccountService {
 
     return await drizzleDB.update(account)
       .set({
-        joinPassword: join_password,
+        join_password: join_password,
       })
       .where(eq(account.id, account_id))
       .returning()
@@ -408,7 +408,7 @@ export default class AccountService {
     }
 
     const this_membership = await drizzleDB.query.membership.findFirst({
-      where: (membership) => eq(membership.userId, user_id) && eq(membership.accountId, account_id),
+      where: (membership) => eq(membership.user_id, user_id) && eq(membership.account_id, account_id),
     })
     if (!this_membership) {
       throw new Error(`Membership does not exist for user ${user_id} and account ${account_id}`);
@@ -436,7 +436,7 @@ export default class AccountService {
 
     const updatedMembershipId: { updatedId: number }[] = await drizzleDB.update(membership)
       .set({ access })
-      .where(eq(membership.userId, user_id) && eq(membership.accountId, account_id))
+      .where(eq(membership.user_id, user_id) && eq(membership.account_id, account_id))
       .returning({ updatedId: membership.id });
 
     // Retrieve the updated membership
