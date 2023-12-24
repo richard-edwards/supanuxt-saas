@@ -3,7 +3,8 @@ import { UtilService } from './util.service';
 import generator from 'generate-password-ts';
 
 import { db as drizzleDB } from '~~/drizzle/drizzle.client';
-import { membership, account, plan, user, ACCOUNT_ACCESS } from '~~/drizzle/schema'
+import { membership, account, plan, user } from '~~/drizzle/schema'
+import { ACCOUNT_ACCESS } from '~~/drizzle/enums';
 
 import { eq } from 'drizzle-orm'
 
