@@ -23,7 +23,7 @@
   }
 
   function joinURL() {
-    return `${config.public.siteRootUrl}/join/${activeMembership.value?.account.join_password}`;
+    return `${config.public.siteRootUrl}/join/${activeMembership.value?.account.joinPassword}`;
   }
 </script>
 <template>
