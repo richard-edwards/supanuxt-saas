@@ -38,10 +38,12 @@ export default defineEventHandler(async event => {
             : 'no name supplied',
           user.email ? user.email : 'no@email.supplied'
         );
-        console.log(`\n Created DB User \n ${JSON.stringify(dbUser)}\n`);
+        console.log(`\n Created DB User \n ${JSON.stringify(dbUser)}\n`)
       }
 
       if (dbUser) {
+        console.log(`\n Found DB User \n ${JSON.stringify(dbUser)}\n`)
+        console.log(`\n Event \n ${JSON.stringify(event)}\n`)
         event.context.dbUser = dbUser;
         let activeAccountId;
         const preferredAccountId = getCookie(
