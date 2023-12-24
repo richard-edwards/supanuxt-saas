@@ -9,7 +9,7 @@
  */
 import { initTRPC, TRPCError } from '@trpc/server';
 import type { Context } from './context';
-import { ACCOUNT_ACCESS } from '~~/lib/services/service.types';
+import { ACCOUNT_ACCESS } from '~~/drizzle/enums';
 
 
 import superjson from 'superjson';

@@ -6,7 +6,7 @@ import {
   protectedProcedure,
   ownerProcedure
 } from '../trpc';
-import { ACCOUNT_ACCESS } from '~~/lib/services/service.types';
+import { ACCOUNT_ACCESS } from '~~/drizzle/enums';
 
 import { z } from 'zod';
 import AccountService from '~~/lib/services/account.service';

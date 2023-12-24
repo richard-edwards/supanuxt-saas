@@ -1,7 +1,7 @@
 import { pgTable, pgEnum, serial, text, uniqueIndex, foreignKey, timestamp, integer, boolean } from "drizzle-orm/pg-core"
 import { sql, relations, } from "drizzle-orm"
 
-export const accountAccess = pgEnum("ACCOUNT_ACCESS", ['OWNER', 'ADMIN', 'READ_WRITE', 'READ_ONLY'])
+import { accountAccess } from "./enums"
 
 export const user = pgTable("users", {
 	id: serial("id").primaryKey().notNull(),

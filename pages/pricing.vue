@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { storeToRefs } from 'pinia';
-  import { ACCOUNT_ACCESS } from '~~/lib/services/service.types';
+  import { ACCOUNT_ACCESS } from '~~/drizzle/enums';
 
   const accountStore = useAccountStore();
   const { activeMembership } = storeToRefs(accountStore);

@@ -1,4 +1,4 @@
-import { ACCOUNT_ACCESS } from '~~/lib/services/service.types';
+import { ACCOUNT_ACCESS } from '~~/drizzle/enums';
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { FullDBUser, MembershipWithUser } from '~~/lib/services/service.types';

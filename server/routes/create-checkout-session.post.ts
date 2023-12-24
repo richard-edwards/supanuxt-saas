@@ -1,5 +1,4 @@
-import { ACCOUNT_ACCESS } from '~~/lib/services/service.types';
-
+import { ACCOUNT_ACCESS } from '~~/drizzle/enums';
 
 import Stripe from 'stripe';
 import AccountService from '~~/lib/services/account.service';
