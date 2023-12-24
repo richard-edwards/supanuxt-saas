@@ -1,6 +1,5 @@
 import { openai } from './openai.client';
 import { AccountLimitError } from './errors';
-import AccountService from './account.service';
 
 import { db as drizzleDB } from '~~/drizzle/drizzle.client';
 import { note, account } from '~~/drizzle/schema'
@@ -16,7 +15,7 @@ export default class NotesService {
   }
 
   async getNotesForAccountId(account_id: number) {
-    return await drizzleDB.select().from(note).where(eq(note.account_id, account_id))
+    return await drizzleDB.select().from(note).where(eq(note.accountId, account_id))
   }
 
   async createNote(account_id: number, note_text: string) {
@@ -55,8 +54,8 @@ export default class NotesService {
   }
 
   async generateAINoteFromPrompt(userPrompt: string, account_id: number) {
-    const accountService = new AccountService();
-    const account = await accountService.checkAIGenCount(account_id);
+    // const accountService = new AccountService();
+    // const account = await accountService.checkAIGenCount(account_id);
 
     const prompt = `
     Write an interesting short note about ${userPrompt}.
@@ -71,7 +70,7 @@ export default class NotesService {
       n: 1
     });
 
-    await accountService.incrementAIGenCount(account);
+    // await accountService.incrementAIGenCount(account);
 
     return completion.data.choices[0].text;
   }

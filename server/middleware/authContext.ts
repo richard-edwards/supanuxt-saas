@@ -3,7 +3,7 @@ import { serverSupabaseUser } from '#supabase/server';
 import AuthService from '~/lib/services/auth.service';
 
 import { User } from '@supabase/supabase-js';
-import { FullDBUser } from '~~/lib/services/service.types';
+import type { FullDBUser } from '~~/lib/services/service.types';
 
 // Explicitly type our context by 'Merging' our custom types with the H3EventContext (https://stackoverflow.com/a/76349232/95242)
 declare module 'h3' {
@@ -51,12 +51,12 @@ export default defineEventHandler(async event => {
         if (
           preferredAccountId &&
           dbUser?.memberships.find(
-            m => m.account_id === +preferredAccountId && !m.pending
+            m => m.accountId === +preferredAccountId && !m.pending
           )
         ) {
           activeAccountId = +preferredAccountId;
         } else {
-          const defaultActive = dbUser.memberships[0].account_id.toString();
+          const defaultActive = dbUser.memberships[0].accountId.toString();
           setCookie(event, 'preferred-active-account-id', defaultActive, {
             expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10)
           });

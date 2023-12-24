@@ -1,7 +1,7 @@
 import { ACCOUNT_ACCESS } from '~~/prisma/account-access-enum';
 import Stripe from 'stripe';
 import AccountService from '~~/lib/services/account.service';
-import { AccountWithMembers } from '~~/lib/services/service.types';
+import type { AccountWithMembers } from '~~/lib/services/service.types';
 
 const config = useRuntimeConfig();
 const stripe = new Stripe(config.stripeSecretKey, { apiVersion: '2022-11-15' });
@@ -19,7 +19,7 @@ export default defineEventHandler(async event => {
     account_id
   );
   let customer_id: string;
-  if (!account.stripe_customer_id) {
+  if (!account.stripeCustomerId) {
     // need to pre-emptively create a Stripe user for this account so we know who they are when the webhook comes back
     const owner = account.members.find(
       member => member.access == ACCOUNT_ACCESS.OWNER

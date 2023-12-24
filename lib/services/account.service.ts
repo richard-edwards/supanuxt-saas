@@ -1,42 +1,35 @@
 import { ACCOUNT_ACCESS } from '~~/prisma/account-access-enum';
-import prisma_client from '~~/prisma/prisma.client';
 // drizzle
 import { db as drizzleDB } from '~~/drizzle/drizzle.client';
-import { account, membership } from '~~/drizzle/schema'
+import { account, membership, plan } from '~~/drizzle/schema'
 import { eq } from 'drizzle-orm'
 
-import {
-  accountWithMembers,
-  membershipWithAccount,
-  membershipWithUser,
-} from './service.types';
 import type {
   AccountWithMembers,
   MembershipWithAccount,
-  MembershipWithUser,
-  Membership
+  MembershipWithUser
 } from './service.types';
 import generator from 'generate-password-ts';
-import { UtilService } from './util.service';
-import { AccountLimitError } from './errors';
-
-const config = useRuntimeConfig();
 
 export default class AccountService {
   async getAccountById(account_id: number): Promise<AccountWithMembers> {
-    return prisma_client.account.findFirstOrThrow({
-      where: { id: account_id },
-      ...accountWithMembers
-    });
+    const this_account = await drizzleDB.query.account.findFirst({
+      where: eq(account.id, account_id),
+      with: {
+        members: true,
+      },
+    })
+    return this_account as AccountWithMembers
   }
 
-  async getAccountByJoinPassword(
-    join_password: string
-  ): Promise<AccountWithMembers> {
-    return prisma_client.account.findFirstOrThrow({
-      where: { join_password },
-      ...accountWithMembers
-    });
+  async getAccountByJoinPassword(join_password: string): Promise<AccountWithMembers> {
+    const this_account = await drizzleDB.query.account.findFirst({
+      where: eq(account.joinPassword, join_password),
+      with: {
+        members: true,
+      },
+    })
+    return this_account as AccountWithMembers
   }
 
   async getAccountMembers(account_id: number): Promise<MembershipWithUser[]> {
@@ -46,23 +39,17 @@ export default class AccountService {
         user: true,
       },
     })
-
-    // return prisma_client.membership.findMany({
-    //   where: { account_id },
-    //   ...membershipWithUser
-    // });
   }
 
   async updateAccountStipeCustomerId(
     account_id: number,
     stripe_customer_id: string
   ) {
-    return await prisma_client.account.update({
-      where: { id: account_id },
-      data: {
-        stripe_customer_id
-      }
-    });
+
+    return await drizzleDB.update(account)
+      .set({ stripeCustomerId: stripe_customer_id })
+      .where(eq(account.id, account_id))
+      .returning()
   }
 
   async updateStripeSubscriptionDetailsForAccount(
@@ -71,40 +58,82 @@ export default class AccountService {
     current_period_ends: Date,
     stripe_product_id: string
   ) {
-    const account = await prisma_client.account.findFirstOrThrow({
-      where: { stripe_customer_id }
-    });
+    const this_account = await drizzleDB.query.account.findFirst({
+      where: eq(account.stripeCustomerId, stripe_customer_id),
+    })
 
-    const paid_plan = await prisma_client.plan.findFirstOrThrow({
-      where: { stripe_product_id }
-    });
+    if (!this_account) {
+      throw new Error(`Account not found for customer id ${stripe_customer_id}`);
+    }
 
-    if (paid_plan.id == account.plan_id) {
+    // const account = await prisma_client.account.findFirstOrThrow({
+    //   where: { stripe_customer_id }
+    // });
+
+    const paid_plan = await drizzleDB.query.plan.findFirst({
+      where: eq(plan.stripeProductId, stripe_product_id),
+    })
+
+    if (!paid_plan) {
+      throw new Error(`Plan not found for product id ${stripe_product_id}`);
+    }
+
+    // const paid_plan = await prisma_client.plan.findFirstOrThrow({
+    //   where: { stripe_product_id }
+    // });
+
+
+    if (paid_plan.id == this_account.planId) {
       // only update sub and period info
-      return await prisma_client.account.update({
-        where: { id: account.id },
-        data: {
-          stripe_subscription_id,
-          current_period_ends,
-          ai_gen_count: 0
-        }
-      });
+      return await drizzleDB.update(account)
+        .set({
+          stripeSubscriptionId: stripe_subscription_id,
+          currentPeriodEnds: current_period_ends.toDateString(),
+          aiGenCount: 0
+        })
+        .where(eq(account.id, this_account.id))
+        .returning()
+
+      // return await prisma_client.account.update({
+      //   where: { id: account.id },
+      //   data: {
+      //     stripe_subscription_id,
+      //     current_period_ends,
+      //     ai_gen_count: 0
+      //   }
+      // });
     } else {
       // plan upgrade/downgrade... update everything, copying over plan features and perks
-      return await prisma_client.account.update({
-        where: { id: account.id },
-        data: {
-          stripe_subscription_id,
-          current_period_ends,
-          plan_id: paid_plan.id,
+
+      return await drizzleDB.update(account)
+        .set({
+          stripeSubscriptionId: stripe_subscription_id,
+          currentPeriodEnds: current_period_ends.toDateString(),
+          planId: paid_plan.id,
           features: paid_plan.features,
-          max_notes: paid_plan.max_notes,
-          max_members: paid_plan.max_members,
-          plan_name: paid_plan.name,
-          ai_gen_max_pm: paid_plan.ai_gen_max_pm,
-          ai_gen_count: 0 // I did vacillate on this point ultimately easier to just reset, discussion here https://www.reddit.com/r/SaaS/comments/16e9bew/should_i_reset_usage_counts_on_plan_upgrade/
-        }
-      });
+          maxNotes: paid_plan.maxNotes,
+          maxMembers: paid_plan.maxMembers,
+          planName: paid_plan.name,
+          aiGenMaxPm: paid_plan.aiGenMaxPm,
+          aiGenCount: 0
+        })
+        .where(eq(account.id, this_account.id))
+        .returning()
+
+      // return await prisma_client.account.update({
+      //   where: { id: account.id },
+      //   data: {
+      //     stripe_subscription_id,
+      //     current_period_ends,
+      //     plan_id: paid_plan.id,
+      //     features: paid_plan.features,
+      //     max_notes: paid_plan.max_notes,
+      //     max_members: paid_plan.max_members,
+      //     plan_name: paid_plan.name,
+      //     ai_gen_max_pm: paid_plan.ai_gen_max_pm,
+      //     ai_gen_count: 0 // I did vacillate on this point ultimately easier to just reset, discussion here https://www.reddit.com/r/SaaS/comments/16e9bew/should_i_reset_usage_counts_on_plan_upgrade/
+      //   }
+      // });
     }
   }
 
@@ -128,7 +157,6 @@ export default class AccountService {
     await drizzleDB.update(membership)
       .set({ pending: false })
       .where(eq(membership.id, membership_id))
-      .returning()
 
     // Retrieve the updated user with related entities
     const updatedMembershipWithAccount = await drizzleDB.query.membership.findFirst({
@@ -154,7 +182,7 @@ export default class AccountService {
     }
 
     if (this_membership.accountId != account_id) {
-      throw new Error(`Membership does not belong to current account`);
+      throw new Error(`Membership does not belong to current account or account does not exist`);
     }
 
     const deletedMembership = await drizzleDB.delete(membership)
@@ -232,26 +260,53 @@ export default class AccountService {
   }
 
   async changeAccountName(account_id: number, new_name: string) {
-    return prisma_client.account.update({
-      where: { id: account_id },
-      data: {
+
+    return await drizzleDB.update(account)
+      .set({
         name: new_name
-      }
-    });
+      })
+      .where(eq(account.id, account_id))
+      .returning()
+
+    // return prisma_client.account.update({
+    //   where: { id: account_id },
+    //   data: {
+    //     name: new_name
+    //   }
+    // });
   }
 
   async changeAccountPlan(account_id: number, plan_id: number) {
-    const plan = await prisma_client.plan.findFirstOrThrow({
-      where: { id: plan_id }
-    });
-    return prisma_client.account.update({
-      where: { id: account_id },
-      data: {
-        plan_id: plan_id,
-        features: plan.features,
-        max_notes: plan.max_notes
-      }
-    });
+
+    const this_plan = await drizzleDB.query.plan.findFirst({
+      where: eq(plan.id, plan_id),
+    })
+
+    if (!this_plan) {
+      throw new Error(`Plan not found for plan id ${plan_id}`);
+    }
+
+    // const plan = await prisma_client.plan.findFirstOrThrow({
+    //   where: { id: plan_id }
+    // });
+
+    return await drizzleDB.update(account)
+      .set({
+        planId: this_plan.id,
+        features: this_plan.features,
+        maxNotes: this_plan.maxNotes,
+      })
+      .where(eq(account.id, account.id))
+      .returning()
+
+    // return prisma_client.account.update({
+    //   where: { id: account_id },
+    //   data: {
+    //     plan_id: plan_id,
+    //     features: plan.features,
+    //     max_notes: plan.max_notes
+    //   }
+    // });
   }
 
   async rotateJoinPassword(account_id: number) {
@@ -259,10 +314,18 @@ export default class AccountService {
       length: 10,
       numbers: true
     });
-    return prisma_client.account.update({
-      where: { id: account_id },
-      data: { join_password }
-    });
+
+    return await drizzleDB.update(account)
+      .set({
+        joinPassword: join_password,
+      })
+      .where(eq(account.id, account_id))
+      .returning()
+
+    // return prisma_client.account.update({
+    //   where: { id: account_id },
+    //   data: { join_password }
+    // });
   }
 
   // Claim ownership of an account.
@@ -342,35 +405,62 @@ export default class AccountService {
       );
     }
 
-    const membership = await prisma_client.membership.findUniqueOrThrow({
-      where: {
-        user_id_account_id: {
-          user_id: user_id,
-          account_id: account_id
-        }
-      }
-    });
+    const this_membership = await drizzleDB.query.membership.findFirst({
+      where: (membership) => eq(membership.userId, user_id) && eq(membership.accountId, account_id),
+    })
+    if (!this_membership) {
+      throw new Error(`Membership does not exist for user ${user_id} and account ${account_id}`);
+    }
 
-    if (membership.access === ACCOUNT_ACCESS.OWNER) {
+    // const membership = await prisma_client.membership.findUniqueOrThrow({
+    //   where: {
+    //     user_id_account_id: {
+    //       user_id: user_id,
+    //       account_id: account_id
+    //     }
+    //   }
+    // });
+
+    if (this_membership.access === ACCOUNT_ACCESS.OWNER) {
       throw new Error(
         'UNABLE TO UPDATE MEMBERSHIP: use claimOwnershipOfAccount method to change ownership'
       );
     }
+    // if (membership.access === ACCOUNT_ACCESS.OWNER) {
+    //   throw new Error(
+    //     'UNABLE TO UPDATE MEMBERSHIP: use claimOwnershipOfAccount method to change ownership'
+    //   );
+    // }
 
-    return prisma_client.membership.update({
-      where: {
-        user_id_account_id: {
-          user_id: user_id,
-          account_id: account_id
-        }
-      },
-      data: {
-        access: access
-      },
-      include: {
-        account: true
+    const updatedMembershipId: { updatedId: number }[] = await drizzleDB.update(membership)
+      .set({ access })
+      .where(eq(membership.userId, user_id) && eq(membership.accountId, account_id))
+      .returning({ updatedId: membership.id });
+
+    // Retrieve the updated membership
+    const updatedMembershipWithAccount = await drizzleDB.query.membership.findFirst({
+      where: (membership) => eq(membership.id, updatedMembershipId[0].updatedId),
+      with: {
+        account: true,
       }
-    });
+    })
+
+    return updatedMembershipWithAccount as MembershipWithAccount
+
+    // return prisma_client.membership.update({
+    //   where: {
+    //     user_id_account_id: {
+    //       user_id: user_id,
+    //       account_id: account_id
+    //     }
+    //   },
+    //   data: {
+    //     access: access
+    //   },
+    //   include: {
+    //     account: true
+    //   }
+    // });
   }
 
   /*
@@ -394,49 +484,49 @@ export default class AccountService {
   }
   */
 
-  async getAccountWithPeriodRollover(account_id: number) {
-    const account = await prisma_client.account.findFirstOrThrow({
-      where: { id: account_id }
-    });
+  // async getAccountWithPeriodRollover(account_id: number) {
+  //   const account = await prisma_client.account.findFirstOrThrow({
+  //     where: { id: account_id }
+  //   });
 
-    if (
-      account.plan_name === config.initialPlanName &&
-      account.current_period_ends < new Date()
-    ) {
-      return await prisma_client.account.update({
-        where: { id: account.id },
-        data: {
-          current_period_ends: UtilService.addMonths(
-            account.current_period_ends,
-            1
-          ),
-          // reset anything that is affected by the rollover
-          ai_gen_count: 0
-        }
-      });
-    }
+  //   if (
+  //     account.plan_name === config.initialPlanName &&
+  //     account.current_period_ends < new Date()
+  //   ) {
+  //     return await prisma_client.account.update({
+  //       where: { id: account.id },
+  //       data: {
+  //         current_period_ends: UtilService.addMonths(
+  //           account.current_period_ends,
+  //           1
+  //         ),
+  //         // reset anything that is affected by the rollover
+  //         ai_gen_count: 0
+  //       }
+  //     });
+  //   }
 
-    return account;
-  }
+  //   return account;
+  // }
 
-  async checkAIGenCount(account_id: number) {
-    const account = await this.getAccountWithPeriodRollover(account_id);
+  // async checkAIGenCount(account_id: number) {
+  //   const account = await this.getAccountWithPeriodRollover(account_id);
 
-    if (account.ai_gen_count >= account.ai_gen_max_pm) {
-      throw new AccountLimitError(
-        'Monthly AI gen limit reached, no new AI Generations can be made'
-      );
-    }
+  //   if (account.ai_gen_count >= account.ai_gen_max_pm) {
+  //     throw new AccountLimitError(
+  //       'Monthly AI gen limit reached, no new AI Generations can be made'
+  //     );
+  //   }
 
-    return account;
-  }
+  //   return account;
+  // }
 
-  async incrementAIGenCount(account: any) {
-    return await prisma_client.account.update({
-      where: { id: account.id },
-      data: {
-        ai_gen_count: account.ai_gen_count + 1
-      }
-    });
-  }
+  // async incrementAIGenCount(account: any) {
+  //   return await prisma_client.account.update({
+  //     where: { id: account.id },
+  //     data: {
+  //       ai_gen_count: account.ai_gen_count + 1
+  //     }
+  //   });
+  // }
 }

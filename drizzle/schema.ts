@@ -69,7 +69,7 @@ export const plan = pgTable("plan", {
 
 export const note = pgTable("note", {
 	id: serial("id").primaryKey().notNull(),
-	account_id: integer("account_id").references(() => account.id, { onDelete: "set null", onUpdate: "cascade" }),
+	accountId: integer("account_id").references(() => account.id, { onDelete: "set null", onUpdate: "cascade" }),
 	note_text: text("note_text").notNull(),
 });
 

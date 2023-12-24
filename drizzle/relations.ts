@@ -23,7 +23,7 @@ export const membershipRelations = relations(membership, ({ one }) => ({
 
 export const noteRelations = relations(note, ({ one }) => ({
   account: one(account, {
-    fields: [note.account_id],
+    fields: [note.accountId],
     references: [account.id],
   }),
 }));

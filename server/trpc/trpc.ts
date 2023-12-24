@@ -8,10 +8,11 @@
  * @see https://trpc.io/docs/v10/procedures
  */
 import { initTRPC, TRPCError } from '@trpc/server';
-import { Context } from './context';
+import type { Context } from './context';
 import { ACCOUNT_ACCESS } from '~~/prisma/account-access-enum';
 import superjson from 'superjson';
 import { AccountLimitError } from '~~/lib/services/errors';
+import { membership } from '~/drizzle/schema';
 
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
@@ -54,7 +55,7 @@ const isMemberWithAccessesForActiveAccountId = (access: ACCOUNT_ACCESS[]) =>
       });
     }
     const activeMembership = ctx.dbUser.memberships.find(
-      membership => membership.account_id == ctx.activeAccountId
+      m => m.accountId == ctx.activeAccountId
     );
 
     console.log(
@@ -91,7 +92,7 @@ export const isAccountWithFeature = (feature: string) =>
       throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
     const activeMembership = ctx.dbUser.memberships.find(
-      membership => membership.account_id == ctx.activeAccountId
+      m => m.accountId == ctx.activeAccountId
     );
 
     console.log(

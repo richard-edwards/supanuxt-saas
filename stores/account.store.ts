@@ -1,7 +1,7 @@
 import { ACCOUNT_ACCESS } from '~~/prisma/account-access-enum';
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { FullDBUser, MembershipWithUser } from '~~/lib/services/service.types';
+import type { FullDBUser, MembershipWithUser } from '~~/lib/services/service.types';
 
 /*
 This store manages User and Account state including the ActiveAccount
@@ -28,7 +28,7 @@ export const useAccountStore = defineStore('account', () => {
   const activeAccountId = ref<number | null>(null);
   const activeAccountMembers = ref<MembershipWithUser[]>([]);
   const activeMembership = computed(() =>
-    dbUser?.value?.memberships.find(m => m.account_id === activeAccountId.value)
+    dbUser?.value?.memberships.find(m => m.accountId === activeAccountId.value)
   );
 
   const init = async () => {
