@@ -1,6 +1,7 @@
 import { defineEventHandler, parseCookies, setCookie, getCookie } from 'h3';
 import { serverSupabaseUser } from '#supabase/server';
 import AuthService from '~/lib/services/auth.service';
+import { ACCOUNT_ACCESS } from '~~/lib/services/service.types';
 
 import { User } from '@supabase/supabase-js';
 import type { FullDBUser } from '~~/lib/services/service.types';
@@ -44,6 +45,7 @@ export default defineEventHandler(async event => {
       if (dbUser) {
         console.log(`\n Found DB User \n ${JSON.stringify(dbUser)}\n`)
         console.log(`\n Event \n ${JSON.stringify(event)}\n`)
+
         event.context.dbUser = dbUser;
         let activeAccountId;
         const preferredAccountId = getCookie(

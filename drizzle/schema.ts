@@ -10,7 +10,6 @@ export const aalLevel = pgEnum("aal_level", ['aal3', 'aal2', 'aal1'])
 export const codeChallengeMethod = pgEnum("code_challenge_method", ['plain', 's256'])
 export const accountAccess = pgEnum("ACCOUNT_ACCESS", ['OWNER', 'ADMIN', 'READ_WRITE', 'READ_ONLY'])
 
-
 export const user = pgTable("users", {
 	id: serial("id").primaryKey().notNull(),
 	supabaseUid: text("supabase_uid").notNull(),

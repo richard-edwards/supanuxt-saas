@@ -1,4 +1,5 @@
-import { accountAccess as ACCOUNT_ACCESS } from '~~/drizzle/schema';
+import { ACCOUNT_ACCESS } from '~~/lib/services/service.types';
+
 
 import Stripe from 'stripe';
 import AccountService from '~~/lib/services/account.service';

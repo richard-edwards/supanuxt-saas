@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { storeToRefs } from 'pinia';
-  import { accountAccess as ACCOUNT_ACCESS } from '~~/drizzle/schema';
+  import { ACCOUNT_ACCESS } from '~~/lib/services/service.types';
+
   const accountStore = useAccountStore();
   const { activeMembership } = storeToRefs(accountStore);
 

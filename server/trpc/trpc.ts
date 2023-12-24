@@ -9,7 +9,8 @@
  */
 import { initTRPC, TRPCError } from '@trpc/server';
 import type { Context } from './context';
-import { accountAccess as ACCOUNT_ACCESS } from '~~/drizzle/schema';
+import { ACCOUNT_ACCESS } from '~~/lib/services/service.types';
+
 
 import superjson from 'superjson';
 import { AccountLimitError } from '~~/lib/services/errors';

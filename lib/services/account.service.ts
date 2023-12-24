@@ -1,7 +1,8 @@
 // drizzle
 import { db as drizzleDB } from '~~/drizzle/drizzle.client';
 import { account, membership, plan } from '~~/drizzle/schema'
-import { accountAccess as ACCOUNT_ACCESS } from '~~/drizzle/schema';
+import { ACCOUNT_ACCESS } from '~~/lib/services/service.types';
+
 
 import { eq } from 'drizzle-orm'
 

@@ -1,6 +1,8 @@
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
-import { membership, account, user } from '~~/drizzle/schema'
+import { membership, account, user, accountAccess } from '~~/drizzle/schema'
+
+export const ACCOUNT_ACCESS = z.enum(accountAccess.enumValues).Enum
 
 const membershipSelect = createSelectSchema(membership)
 

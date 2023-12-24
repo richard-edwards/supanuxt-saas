@@ -4,7 +4,8 @@ import generator from 'generate-password-ts';
 
 import { db as drizzleDB } from '~~/drizzle/drizzle.client';
 import { membership, account, plan, user } from '~~/drizzle/schema'
-import { accountAccess as ACCOUNT_ACCESS } from '~~/drizzle/schema';
+import { ACCOUNT_ACCESS } from '~~/lib/services/service.types';
+
 
 
 import { eq } from 'drizzle-orm'
