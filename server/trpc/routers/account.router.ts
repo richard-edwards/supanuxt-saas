@@ -6,7 +6,7 @@ import {
   protectedProcedure,
   ownerProcedure
 } from '../trpc';
-import { ACCOUNT_ACCESS } from '~~/prisma/account-access-enum';
+import { accountAccess as ACCOUNT_ACCESS } from '~~/drizzle/schema';
 import { z } from 'zod';
 import AccountService from '~~/lib/services/account.service';
 import type { MembershipWithAccount } from '~~/lib/services/service.types';

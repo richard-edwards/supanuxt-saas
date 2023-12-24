@@ -1,10 +1,12 @@
-import { ACCOUNT_ACCESS } from '~~/prisma/account-access-enum';
 import type { FullDBUser } from './service.types';
 import { UtilService } from './util.service';
 import generator from 'generate-password-ts';
 
 import { db as drizzleDB } from '~~/drizzle/drizzle.client';
 import { membership, account, plan, user } from '~~/drizzle/schema'
+import { accountAccess as ACCOUNT_ACCESS } from '~~/drizzle/schema';
+
+
 import { eq } from 'drizzle-orm'
 
 const config = useRuntimeConfig();

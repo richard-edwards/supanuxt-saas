@@ -9,7 +9,8 @@
  */
 import { initTRPC, TRPCError } from '@trpc/server';
 import type { Context } from './context';
-import { ACCOUNT_ACCESS } from '~~/prisma/account-access-enum';
+import { accountAccess as ACCOUNT_ACCESS } from '~~/drizzle/schema';
+
 import superjson from 'superjson';
 import { AccountLimitError } from '~~/lib/services/errors';
 import { membership } from '~/drizzle/schema';

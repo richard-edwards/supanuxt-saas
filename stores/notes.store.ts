@@ -1,4 +1,3 @@
-// import { Note } from '.prisma/client';
 import { note } from '~~/drizzle/schema';
 import { defineStore, storeToRefs } from 'pinia';
 import { Ref } from 'vue';

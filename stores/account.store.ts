@@ -1,4 +1,5 @@
-import { ACCOUNT_ACCESS } from '~~/prisma/account-access-enum';
+import { accountAccess as ACCOUNT_ACCESS } from '~~/drizzle/schema';
+
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { FullDBUser, MembershipWithUser } from '~~/lib/services/service.types';
