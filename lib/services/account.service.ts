@@ -1,7 +1,7 @@
 // drizzle
 import { db as drizzleDB } from '~~/drizzle/drizzle.client';
-import { account, membership, plan, ACCOUNT_ACCESS } from '~~/drizzle/schema'
-
+import { account, membership, plan} from '~~/drizzle/schema'
+import { ACCOUNT_ACCESS } from '~~/drizzle/enums';
 
 import { eq } from 'drizzle-orm'
 
